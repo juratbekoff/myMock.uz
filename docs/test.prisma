@@ -1,0 +1,169 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model Candidate {
+    id           Int    @id @default(autoincrement())
+    name         String
+    phone_number String @unique
+    email        String @unique
+    password     String
+    balance      String @default("0")
+    tokenId      Int    @unique
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    BookedExams Bookings[]
+    Results     Results[]
+    Payment     Payment[]
+    Token       Token      @relation(fields: [tokenId], references: [id])
+}
+
+model Organizer {
+    id           Int    @id @default(autoincrement())
+    name         String
+    email        String @unique
+    phone_number String @unique
+    password     String
+    balance      String @default("0")
+    tokenId      Int    @unique
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    Results Results[]
+    Payment Payment[]
+
+    Token Token @relation(fields: [tokenId], references: [id])
+}
+
+model Exams {
+    id           Int     @id @default(autoincrement())
+    name         String
+    cost         String
+    descr        String
+    date         String
+    has_deadline Boolean
+    deadline     String
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    Bookings Bookings[]
+}
+
+model Bookings {
+    id             Int    @id @default(autoincrement())
+    examId         Int
+    candidateId    Int    @unique
+    candidate_name String
+    phone_number   String
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    Exams      Exams     @relation(fields: [examId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+    Candidates Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+    Results    Results[]
+}
+
+model Results {
+    id             Int     @id @default(autoincrement())
+    bookingId      Int
+    candidateId    Int
+    organizerId    Int
+    candidate_name String
+    phone_number   String
+    reading        Int
+    listening      Int
+    writing        Int
+    speaking       Int
+    overall_score  Int
+    isSent         Boolean @default(false)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    Bookings   Bookings  @relation(fields: [bookingId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+    Candidates Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+    Organizer  Organizer @relation(fields: [organizerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+}
+
+model Payment {
+    id          Int    @id @default(autoincrement())
+    candidateId Int?
+    organizerId Int?
+    amount      String
+    service     String
+    status      String
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    Organizer Organizer? @relation(fields: [organizerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+    Candidate Candidate? @relation(fields: [candidateId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+}
+
+model Admin {
+    id       Int    @id @default(autoincrement())
+    name     String
+    username String
+    password String
+    balance  String
+    roleId   Int
+    tokenId  Int    @unique
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    Role  adminRole @relation(fields: [id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+    Token Token     @relation(fields: [tokenId], references: [id])
+}
+
+model adminRole {
+    id          Int      @id @default(autoincrement())
+    name        String
+    permissions String[]
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    Admin Admin[]
+}
+
+model Permissions {
+    id   Int    @id @default(autoincrement())
+    name String
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+model Token {
+    id           Int       @id @default(autoincrement())
+    candidateId  Int?      @unique
+    organizerId  Int?      @unique
+    adminId      Int?      @unique
+    accessToken  String    @unique
+    refreshToken String    @unique
+    userRole     MainRoles
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    Organizer Organizer[]
+    Admin     Admin[]
+    Candidate Candidate[]
+}
+
+enum MainRoles {
+    CANDIDATE
+    ADMIN
+    ORGANIZER
+}

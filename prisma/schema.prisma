@@ -1,0 +1,156 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model Organizer {
+    id           Int      @id @default(autoincrement())
+    name         String
+    surname      String
+    email        String   @unique
+    phone_number String   @unique
+    password     String
+    balance      String   @default("0")
+    tokenId      Int      @unique
+    account_type String //DEMO || REAL
+    trial_period Int
+    started_date DateTime @default(now())
+    end_date     DateTime
+    is_active    Boolean
+    left_days    Int?
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    Token Token @relation(fields: [tokenId], references: [id])
+
+    Exams      Exams[]
+    Payment    Payment[]
+    Candidates Booking[]
+}
+
+model Exams {
+    id          Int       @id @default(autoincrement())
+    organizerId Int
+    name        String
+    exam_type   String
+    cost        String?
+    date        DateTime?
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    Bookings  Booking[]
+    Organizer Organizer @relation(fields: [organizerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+}
+
+model Booking {
+    id            Int           @id @default(autoincrement())
+    examId        Int
+    organizerId   Int
+    name          String
+    surname       String
+    phone_number  String
+    reading       String?
+    listening     String?
+    writing       String?
+    speaking      String?
+    overall_score String?
+    isFilled      Boolean       @default(false)
+    isSent        Boolean       @default(false)
+    status        SendingStatus @default(NOT_START)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    Exams     Exams     @relation(fields: [examId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+    Organizer Organizer @relation(fields: [organizerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+}
+
+model Payment {
+    id          Int    @id @default(autoincrement())
+    adminId     Int
+    organizerId Int
+    amount      String
+    provider    String
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    Organizer Organizer @relation(fields: [organizerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+    Admin     Admin     @relation(fields: [adminId], references: [id])
+}
+
+model Admin {
+    id        Int     @id @default(autoincrement())
+    creatorId Int     @default(-999)
+    name      String
+    username  String  @unique
+    password  String
+    balance   String  @default("0")
+    tokenId   Int     @unique
+    roleId    Int
+    hasShares Boolean @default(false)
+    ownShares Int?
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    Role    Role      @relation(fields: [id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+    Token   Token     @relation(fields: [tokenId], references: [id])
+    Payment Payment[]
+}
+
+model Role {
+    id          Int      @id @default(autoincrement())
+    creatorId   Int      @default(-999)
+    name        String   @unique
+    permissions String[]
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    Admin Admin[]
+}
+
+model Permissions {
+    id   Int    @id @default(autoincrement())
+    name String
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+model Token {
+    id           Int       @id @default(autoincrement())
+    organizerId  Int?      @unique
+    adminId      Int?      @unique
+    accessToken  String?   @unique
+    refreshToken String    @unique
+    userRole     MainRoles
+    isExpired    Boolean   @default(false)
+
+    createdAt       DateTime @default(now())
+    updatedAt       DateTime @updatedAt
+    lastGeneratedAt DateTime
+
+    Organizer Organizer[]
+    Admin     Admin[]
+}
+
+enum MainRoles {
+    CANDIDATE
+    ADMIN
+    ORGANIZER
+}
+
+enum SendingStatus {
+    NOT_START
+    SENDING
+    FINISHED
+    UNSENT
+}

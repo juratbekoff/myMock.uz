@@ -1,0 +1,18 @@
+# Candidate
+9-iyun -- "Student booking (all methods CRUD)"
+10-iyun -- "Top-up balance, all methods (CRUD)"
+11-iyun -- "Payment and balance,make them optimize"
+
+# Organizer
+12-iyun -- "exams with full (CRUD)"
+13-iyun -- "Top-up organizer balance, all methods (CRUD)"
+14-iyun -- "Payment and balance, make them optimize"
+15-iyun -- "Results part 1 -- filling results and send one!"
+16-iyun -- "Results part 2 (end) -- setting up sending mulitple results and their statistics!"
+17-iyun -- "Make a withdrawing part for all candidates and organizers!"
+
+# Admin
+18-iyun -- "Start working with admin panel!"
+
+
+
